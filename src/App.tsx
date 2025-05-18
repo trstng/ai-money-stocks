@@ -34,6 +34,15 @@ export const AuthContext = createContext<AuthContextType>({
   logout: () => Promise.resolve(),
 });
 
+// Fix for the auth hook - moved outside of App component
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -45,42 +54,39 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated ? <>{children}</> : <Navigate to="/" />;
 };
 
-// Auth hook for easy access
-export const useAuth = () => {
-  const context = React.useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
-
 const App = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is logged in
+  // Check if user is logged in - fixed to prevent re-renders
   useEffect(() => {
-    // First set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setIsLoading(false);
-      }
-    );
-
-    // Then check for existing session
+    // First get the current session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setIsLoading(false);
     });
 
+    // Then set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        // Only update if there's a change to avoid unnecessary re-renders
+        if (
+          JSON.stringify(currentSession?.user) !== JSON.stringify(user) ||
+          JSON.stringify(currentSession) !== JSON.stringify(session)
+        ) {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          setIsLoading(false);
+        }
+      }
+    );
+
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Remove dependencies to prevent re-runs
 
   // Auth functions
   const login = async (email: string, password: string) => {
