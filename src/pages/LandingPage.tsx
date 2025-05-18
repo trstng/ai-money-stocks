@@ -13,14 +13,12 @@ const LandingPage = () => {
   const cube2Ref = useRef<HTMLDivElement>(null);
   const cube3Ref = useRef<HTMLDivElement>(null);
   
-  // Only redirect when fully authenticated AND loading is complete
+  // Simplified redirect logic - only redirect if authenticated and not loading
   useEffect(() => {
-    // This condition is crucial - only redirect when we're sure about the auth state
     if (!isLoading && isAuthenticated) {
-      console.log("User authenticated and loading complete, redirecting to dashboard");
       navigate("/dashboard", { replace: true });
     }
-  }, [isAuthenticated, navigate, isLoading]);
+  }, [isAuthenticated, isLoading]);
 
   // Handle parallax scrolling effect
   useEffect(() => {
@@ -50,14 +48,14 @@ const LandingPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Only render the landing page when we're sure the user is not logged in
+  // Show a loading screen to prevent flashes of content during auth check
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  // If user is logged in but somehow ended up here, redirect them
+  // Don't render landing page if user is authenticated
   if (isAuthenticated) {
-    return null; // Return null to avoid flash of content before redirect
+    return null;
   }
 
   return (

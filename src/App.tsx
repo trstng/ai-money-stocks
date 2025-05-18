@@ -43,7 +43,7 @@ export const useAuth = () => {
   return context;
 };
 
-// Protected route component
+// Protected route component - simplified to prevent loops
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
@@ -60,30 +60,30 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set up initial session check first - this is crucial for first load
-    const initializeAuth = async () => {
-      // Get current session
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setIsLoading(false);
-    };
+    // Simple synchronous initialization to avoid race conditions
+    const setupAuth = () => {
+      // Set up auth state listener
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (_event, currentSession) => {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          setIsLoading(false);
+        }
+      );
 
-    // Run initial check
-    initializeAuth();
-    
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+      // Get initial session
+      supabase.auth.getSession().then(({ data }) => {
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
         setIsLoading(false);
-      }
-    );
+      });
 
-    return () => {
-      subscription.unsubscribe();
+      return () => {
+        subscription.unsubscribe();
+      };
     };
+
+    return setupAuth();
   }, []); // Empty dependency array to run only once
 
   // Auth functions
