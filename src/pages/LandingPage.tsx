@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthForm from "@/components/AuthForm";
@@ -13,12 +14,18 @@ const LandingPage = () => {
   const cube2Ref = useRef<HTMLDivElement>(null);
   const cube3Ref = useRef<HTMLDivElement>(null);
   
-  // Simplified redirect logic - only redirect if authenticated and not loading
+  // Modified redirect logic with a delay to ensure stable auth state
   useEffect(() => {
+    // Add a small delay to ensure auth state is stable
+    // and avoid immediate redirection
     if (!isLoading && isAuthenticated) {
-      navigate("/dashboard", { replace: true });
+      const timer = setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   // Handle parallax scrolling effect
   useEffect(() => {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, createContext } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -43,15 +42,16 @@ export const useAuth = () => {
   return context;
 };
 
-// Protected route component - simplified to prevent loops
+// Protected route component - made more stable
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
-  if (isLoading) {
+  // Show loading longer to ensure auth state is stable
+  if (isLoading || isAuthenticated === undefined) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
   
-  return isAuthenticated ? <>{children}</> : <Navigate to="/" />;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/" replace />;
 };
 
 const App = () => {

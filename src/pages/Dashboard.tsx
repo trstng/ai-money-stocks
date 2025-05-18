@@ -8,8 +8,12 @@ const Dashboard = () => {
   const { logout, user } = useAuth();
 
   const handleLogout = async () => {
-    await logout();
-    // Auth state change will handle redirect automatically
+    try {
+      await logout();
+      // Let auth state change handle redirection, don't manually navigate
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (
