@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthForm from "@/components/AuthForm";
@@ -14,10 +13,12 @@ const LandingPage = () => {
   const cube2Ref = useRef<HTMLDivElement>(null);
   const cube3Ref = useRef<HTMLDivElement>(null);
   
-  // Redirect if already authenticated - fixed to check loading state first
+  // Only redirect when fully authenticated AND loading is complete
   useEffect(() => {
+    // This condition is crucial - only redirect when we're sure about the auth state
     if (!isLoading && isAuthenticated) {
-      navigate("/dashboard");
+      console.log("User authenticated and loading complete, redirecting to dashboard");
+      navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate, isLoading]);
 
@@ -48,6 +49,16 @@ const LandingPage = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Only render the landing page when we're sure the user is not logged in
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  // If user is logged in but somehow ended up here, redirect them
+  if (isAuthenticated) {
+    return null; // Return null to avoid flash of content before redirect
+  }
 
   return (
     <div className="min-h-screen bg-aidark overflow-hidden">

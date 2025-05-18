@@ -9,6 +9,7 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     await logout();
+    // No navigation here - Auth state will trigger the appropriate redirects
   };
 
   return (
