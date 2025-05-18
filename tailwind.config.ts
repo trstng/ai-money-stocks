@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+        // Custom AI Money theme colors
+        aiblue: '#1EAEDB',
+        aipurple: '#9b87f5',
+        aineon: '#D946EF',
+        aiorange: '#F97316',
+        aired: '#ea384c',
+        aidark: '#1A1F2C',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +92,25 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        'pulse-glow': {
+          '0%, 100%': { 
+            textShadow: '0 0 8px rgba(155, 135, 245, 0.7), 0 0 12px rgba(217, 70, 239, 0.5)'
+          },
+          '50%': { 
+            textShadow: '0 0 16px rgba(155, 135, 245, 0.9), 0 0 24px rgba(217, 70, 239, 0.7)'
+          },
+        }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+        'float': 'float 6s ease-in-out infinite',
+        'pulse-glow': 'pulse-glow 3s ease-in-out infinite'
 			}
 		}
 	},
