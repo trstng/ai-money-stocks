@@ -6,7 +6,7 @@ import { useAuth } from "@/App";
 import { ArrowDown } from "lucide-react";
 
 const LandingPage = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const parallaxRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -14,12 +14,12 @@ const LandingPage = () => {
   const cube2Ref = useRef<HTMLDivElement>(null);
   const cube3Ref = useRef<HTMLDivElement>(null);
   
-  // Redirect if already authenticated
+  // Redirect if already authenticated - fixed to check loading state first
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!isLoading && isAuthenticated) {
       navigate("/dashboard");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, isLoading]);
 
   // Handle parallax scrolling effect
   useEffect(() => {

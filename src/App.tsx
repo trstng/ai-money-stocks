@@ -34,7 +34,7 @@ export const AuthContext = createContext<AuthContextType>({
   logout: () => Promise.resolve(),
 });
 
-// Fix for the auth hook - moved outside of App component
+// Auth hook - kept outside of App component
 export const useAuth = () => {
   const context = React.useContext(AuthContext);
   if (context === undefined) {
@@ -59,34 +59,29 @@ const App = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is logged in - fixed to prevent re-renders
+  // Auth state management - rewritten to fix the infinite loop
   useEffect(() => {
-    // First get the current session
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, currentSession) => {
+        // Update state without any conditional checks that reference stale state
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        setIsLoading(false);
+      }
+    );
+
+    // Initial session check
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setIsLoading(false);
     });
 
-    // Then set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        // Only update if there's a change to avoid unnecessary re-renders
-        if (
-          JSON.stringify(currentSession?.user) !== JSON.stringify(user) ||
-          JSON.stringify(currentSession) !== JSON.stringify(session)
-        ) {
-          setSession(currentSession);
-          setUser(currentSession?.user ?? null);
-          setIsLoading(false);
-        }
-      }
-    );
-
     return () => {
       subscription.unsubscribe();
     };
-  }, []); // Remove dependencies to prevent re-runs
+  }, []); // Empty dependency array to run only once
 
   // Auth functions
   const login = async (email: string, password: string) => {
