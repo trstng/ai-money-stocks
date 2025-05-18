@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const AuthForm = () => {
   const { login, signup } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -23,8 +25,9 @@ const AuthForm = () => {
   const [signupPassword, setSignupPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg("");
     
     if (!loginEmail || !loginPassword) {
       toast({
@@ -37,20 +40,37 @@ const AuthForm = () => {
     
     setIsLoading(true);
     
-    // Simulate API request
-    setTimeout(() => {
-      login(loginEmail, loginPassword);
+    try {
+      const { error } = await login(loginEmail, loginPassword);
+      
+      if (error) {
+        setErrorMsg(error.message);
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "You have successfully logged in",
+        });
+        navigate("/dashboard");
+      }
+    } catch (err: any) {
       toast({
-        title: "Success",
-        description: "You have successfully logged in",
+        title: "Error",
+        description: err.message || "An unexpected error occurred",
+        variant: "destructive",
       });
-      navigate("/dashboard");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg("");
     
     if (!signupEmail || !signupPassword || !confirmPassword) {
       toast({
@@ -72,16 +92,33 @@ const AuthForm = () => {
     
     setIsLoading(true);
     
-    // Simulate API request
-    setTimeout(() => {
-      signup(signupEmail, signupPassword);
+    try {
+      const { error } = await signup(signupEmail, signupPassword);
+      
+      if (error) {
+        setErrorMsg(error.message);
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Account created successfully. Please check your email to confirm your account.",
+        });
+        // Note: With email confirmation enabled, the user won't be automatically logged in
+        // If you want to disable email confirmation in Supabase, navigate to the dashboard
+      }
+    } catch (err: any) {
       toast({
-        title: "Success",
-        description: "Account created successfully",
+        title: "Error",
+        description: err.message || "An unexpected error occurred",
+        variant: "destructive",
       });
-      navigate("/dashboard");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -99,6 +136,11 @@ const AuthForm = () => {
               <CardDescription>Enter your credentials to access your account</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {errorMsg && (
+                <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-md text-sm text-red-200">
+                  {errorMsg}
+                </div>
+              )}
               <div className="space-y-2">
                 <label htmlFor="login-email" className="text-sm font-medium text-muted-foreground">
                   Email
@@ -132,7 +174,12 @@ const AuthForm = () => {
                 className="w-full bg-aipurple hover:bg-aipurple/90"
                 disabled={isLoading}
               >
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : "Login"}
               </Button>
             </CardFooter>
           </form>
@@ -145,6 +192,11 @@ const AuthForm = () => {
               <CardDescription>Register for a new account</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {errorMsg && (
+                <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-md text-sm text-red-200">
+                  {errorMsg}
+                </div>
+              )}
               <div className="space-y-2">
                 <label htmlFor="signup-email" className="text-sm font-medium text-muted-foreground">
                   Email
@@ -191,7 +243,12 @@ const AuthForm = () => {
                 className="w-full bg-aineon hover:bg-aineon/90"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating account..." : "Sign Up"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : "Sign Up"}
               </Button>
             </CardFooter>
           </form>

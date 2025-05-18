@@ -5,6 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -13,22 +15,33 @@ const queryClient = new QueryClient();
 
 // Create auth context
 export type AuthContextType = {
+  session: Session | null;
+  user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => void;
-  signup: (email: string, password: string) => void;
-  logout: () => void;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<{ error: any | null }>;
+  signup: (email: string, password: string) => Promise<{ error: any | null }>;
+  logout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
+  session: null,
+  user: null,
   isAuthenticated: false,
-  login: () => {},
-  signup: () => {},
-  logout: () => {},
+  isLoading: true,
+  login: () => Promise.resolve({ error: null }),
+  signup: () => Promise.resolve({ error: null }),
+  logout: () => Promise.resolve(),
 });
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+  
   return isAuthenticated ? <>{children}</> : <Navigate to="/" />;
 };
 
@@ -42,37 +55,63 @@ export const useAuth = () => {
 };
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Check if user is logged in
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      setIsAuthenticated(true);
-    }
+    // First set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        setIsLoading(false);
+      }
+    );
+
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Auth functions
-  const login = (email: string, password: string) => {
-    // In real app, this would validate credentials
-    localStorage.setItem("user", JSON.stringify({ email }));
-    setIsAuthenticated(true);
+  const login = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error };
   };
 
-  const signup = (email: string, password: string) => {
-    // In real app, this would create a new account
-    localStorage.setItem("user", JSON.stringify({ email }));
-    setIsAuthenticated(true);
+  const signup = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({ email, password });
+    return { error };
   };
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    setIsAuthenticated(false);
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
+
+  const isAuthenticated = !!session;
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthContext.Provider value={{ isAuthenticated, login, signup, logout }}>
+      <AuthContext.Provider 
+        value={{ 
+          session, 
+          user, 
+          isAuthenticated, 
+          isLoading, 
+          login, 
+          signup, 
+          logout 
+        }}
+      >
         <TooltipProvider>
           <Toaster />
           <Sonner />
