@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/App";
@@ -55,7 +54,7 @@ const AuthForm = () => {
           title: "Success",
           description: "You have successfully logged in",
         });
-        navigate("/dashboard");
+        // Don't navigate here - let auth context handle it
       }
     } catch (err: any) {
       toast({

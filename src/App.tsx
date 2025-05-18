@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, createContext } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import LandingPage from "./pages/LandingPage";
@@ -42,22 +43,28 @@ export const useAuth = () => {
   return context;
 };
 
-// Protected route component - made more stable
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  
-  // Show loading longer to ensure auth state is stable
-  if (isLoading || isAuthenticated === undefined) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-  
-  return isAuthenticated ? <>{children}</> : <Navigate to="/" replace />;
-};
+// ProtectedRoute component removed entirely
 
-const App = () => {
+// Main App component
+const AppContent = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate(); // Add this
+
+  // Add this new effect for centralized navigation
+  useEffect(() => {
+    // Only handle navigation after initial loading is complete
+    if (!isLoading) {
+      if (session) {
+        console.log("Auth state: Authenticated, navigating to dashboard");
+        navigate("/dashboard", { replace: true });
+      } else {
+        console.log("Auth state: Not authenticated, navigating to landing");
+        navigate("/", { replace: true });
+      }
+    }
+  }, [session, isLoading, navigate]); // Added navigate to dependency array
 
   useEffect(() => {
     // Simple synchronous initialization to avoid race conditions
@@ -104,38 +111,37 @@ const App = () => {
   const isAuthenticated = !!session;
 
   return (
+    <AuthContext.Provider 
+      value={{ 
+        session, 
+        user, 
+        isAuthenticated, 
+        isLoading, 
+        login, 
+        signup, 
+        logout 
+      }}
+    >
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </TooltipProvider>
+    </AuthContext.Provider>
+  );
+};
+
+const App = () => {
+  return (
     <QueryClientProvider client={queryClient}>
-      <AuthContext.Provider 
-        value={{ 
-          session, 
-          user, 
-          isAuthenticated, 
-          isLoading, 
-          login, 
-          signup, 
-          logout 
-        }}
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthContext.Provider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
     </QueryClientProvider>
   );
 };

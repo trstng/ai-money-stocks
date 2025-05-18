@@ -1,18 +1,16 @@
-
-import React, { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useNavigate } from "react";
 import AuthForm from "@/components/AuthForm";
 import { useAuth } from "@/App";
 import { ArrowDown } from "lucide-react";
 
 const LandingPage = () => {
   const { isAuthenticated, isLoading } = useAuth();
-  const navigate = useNavigate();
   const parallaxRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const cube1Ref = useRef<HTMLDivElement>(null);
   const cube2Ref = useRef<HTMLDivElement>(null);
   const cube3Ref = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   
   // Modified redirect logic with a delay to ensure stable auth state
   useEffect(() => {
