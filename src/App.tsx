@@ -43,8 +43,6 @@ export const useAuth = () => {
   return context;
 };
 
-// ProtectedRoute component removed entirely
-
 // Main App component
 const AppContent = () => {
   const [session, setSession] = useState<Session | null>(null);
