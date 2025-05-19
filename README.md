@@ -1,22 +1,14 @@
-# Welcome to your Lovable project
+# Welcome to your Project
 
-## Project info
+## Project Setup
 
-**URL**: https://lovable.dev/projects/8693ccc1-c838-48e5-9efa-7b71b804dee7
+This project is a web application built with modern JavaScript technologies.
 
 ## How can I edit this code?
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/8693ccc1-c838-48e5-9efa-7b71b804dee7) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo and push changes.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -24,10 +16,10 @@ Follow these steps:
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# git clone <YOUR_GIT_URL> # Replace with your actual Git URL
 
 # Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# cd <YOUR_PROJECT_NAME> # Replace with your project directory name
 
 # Step 3: Install the necessary dependencies.
 npm i
@@ -35,6 +27,13 @@ npm i
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
+
+You will also need to set up your environment variables. Copy the `.env.example` file to a new file named `.env` (or `.env.local`) and fill in the required API keys and URLs:
+```sh
+cp .env.example .env
+# Then edit .env with your actual credentials
+```
+
 
 **Edit a file directly in GitHub**
 
@@ -59,15 +58,24 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (for backend integration)
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/8693ccc1-c838-48e5-9efa-7b71b804dee7) and click on Share -> Publish.
+You can deploy this project to any static site hosting provider or a platform that supports Node.js applications, such as:
+- Vercel
+- Netlify
+- AWS Amplify
+- Google Firebase Hosting
+- GitHub Pages (for static builds)
 
-## Can I connect a custom domain to my Lovable project?
+Ensure your build process includes setting the necessary environment variables for production.
 
-Yes, you can!
+## Environment Variables
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+This project requires the following environment variables to be set:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- `VITE_SUPABASE_URL`: Your Supabase project URL.
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase project's anonymous publishable key.
+
+Refer to the `.env.example` file for a template.
